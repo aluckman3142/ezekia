@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreUserRequest;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\View;
@@ -31,18 +30,18 @@ class UserController extends Controller
     {
 
         $hourly_rate = $user->hourly_rate;
+        $default_currency = $user->default_currency;
 
         $client = new \GuzzleHttp\Client();
-        $res = $client->request('GET','http://api.exchangeratesapi.io/v1/latest?access_key=b74f97ad1516c6d7c387cdd59cb652d4&format=1');
+        $res = $client->request('GET','http://api.exchangeratesapi.io/v1/latest?access_key=b74f97ad1516c6d7c387cdd59cb652d4&base='.$default_currency.'format=1');
         $data = json_decode($res->getBody()->getContents(), true);
 
-
-        if ($user->default_currency == 'EUR' && $res){
+        if ($res){
             $user->euro_rate = $hourly_rate * $data['rates']['EUR'];
             $user->dollar_rate = $hourly_rate * $data['rates']['USD'];
             $user->pound_rate = $hourly_rate * $data['rates']['GBP'];
         } else {
-            switch ($user->default_currency) {
+            switch ($default_currency) {
                 case 'EUR':
                     $user->euro_rate = $hourly_rate;
                     $user->pound_rate = $hourly_rate * 0.9;
